@@ -29,7 +29,10 @@ struct PriceDTO {
 }
 
 async fn get_price(State(state): State<AppState>) -> Result<impl IntoResponse, StatusCode> {
-    Ok(Json(*state.read().await))
+    match *state.read().await {
+        Some(price) => Ok(Json(price)),
+        None => Err(StatusCode::NOT_FOUND),
+    }
 }
 
 async fn set_price(
@@ -37,10 +40,10 @@ async fn set_price(
     Json(input): Json<PriceDTO>,
 ) -> Result<impl IntoResponse, StatusCode> {
     *state.write().await = Some(input.price);
-    Ok(StatusCode::OK)
+    Ok(Json(input.price))
 }
 
 async fn delete_price(State(state): State<AppState>) -> Result<impl IntoResponse, StatusCode> {
     *state.write().await = None;
-    Ok(StatusCode::OK)
+    Ok(StatusCode::NO_CONTENT)
 }
